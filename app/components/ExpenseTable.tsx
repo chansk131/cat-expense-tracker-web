@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { Skeleton } from "~/components/ui/skeleton";
 import type { Expense } from "../db/schema";
 import { CATEGORIES } from "../db/schema";
 
@@ -28,9 +29,24 @@ type Props = {
 
 export function ExpenseTable({ expenses, topCategories }: Props) {
   const [open, setOpen] = useState(false);
+  const [catFact, setCatFact] = useState<string | null>(null);
+  const [catFactLoading, setCatFactLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const fetcher = useFetcher();
   const deleteFetcher = useFetcher();
+
+  useEffect(() => {
+    if (!open) return;
+    startTransition(() => {
+      setCatFact(null);
+      setCatFactLoading(true);
+    });
+    fetch("https://catfact.ninja/fact")
+      .then((res) => res.json())
+      .then((json: { fact: string }) => setCatFact(json.fact))
+      .catch(() => setCatFact(null))
+      .finally(() => setCatFactLoading(false));
+  }, [open]);
 
   const allSelected =
     expenses.length > 0 && selectedIds.size === expenses.length;
@@ -70,64 +86,81 @@ export function ExpenseTable({ expenses, topCategories }: Props) {
             <DialogHeader>
               <DialogTitle>Add Expense</DialogTitle>
             </DialogHeader>
-            <fetcher.Form
-              onSubmit={() => setOpen(false)}
-              method="post"
-              className="flex flex-col gap-4"
-            >
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="item">
-                  Item <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="item"
-                  name="item"
-                  required
-                  placeholder="e.g. Cat Food"
-                />
+            <div className="flex flex-row gap-4">
+              <fetcher.Form
+                onSubmit={() => setOpen(false)}
+                method="post"
+                className="flex flex-col gap-4 w-full"
+              >
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="item">
+                    Item <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="item"
+                    name="item"
+                    required
+                    placeholder="e.g. Cat Food"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select name="category">
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="amount">
+                    Amount <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="amount"
+                    name="amount"
+                    required
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={fetcher.state === "submitting"}
+                  >
+                    {fetcher.state === "submitting" ? "Adding…" : "Add"}
+                  </Button>
+                </DialogFooter>
+              </fetcher.Form>
+              <div className="flex flex-col w-full h-fit rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+                <h2 className="font-bold">Random cat fact:</h2>
+                {catFactLoading ? (
+                  <div className="mt-1 space-y-2">
+                    <Skeleton className="h-3 w-full bg-amber-100" />
+                    <Skeleton className="h-3 w-full bg-amber-100" />
+                    <Skeleton className="h-3 w-4/5 bg-amber-100" />
+                  </div>
+                ) : (
+                  <p>{catFact}</p>
+                )}
               </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="category">Category</Label>
-                <Select name="category">
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="amount">
-                  Amount <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="amount"
-                  name="amount"
-                  required
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  placeholder="0.00"
-                />
-              </div>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={fetcher.state === "submitting"}>
-                  {fetcher.state === "submitting" ? "Adding…" : "Add"}
-                </Button>
-              </DialogFooter>
-            </fetcher.Form>
+            </div>
           </DialogContent>
         </Dialog>
         <Button
