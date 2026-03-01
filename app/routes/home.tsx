@@ -2,7 +2,8 @@ import { desc, inArray } from "drizzle-orm";
 import { data, useLoaderData } from "react-router";
 import { ExpenseTable } from "../components/ExpenseTable";
 import { db } from "../db";
-import { expenses } from "../db/schema";
+import type { Category } from "../db/schema";
+import { CATEGORIES, expenses } from "../db/schema";
 import type { Route } from "./+types/home";
 
 export function meta() {
@@ -39,7 +40,12 @@ export async function action({ request }: Route.ActionArgs) {
   if (request.method === "POST") {
     const formData = await request.formData();
     const item = String(formData.get("item") ?? "").trim();
-    const category = String(formData.get("category") ?? "").trim() || null;
+    const rawCategory = String(formData.get("category") ?? "").trim();
+    const category: Category | null = (
+      CATEGORIES as readonly string[]
+    ).includes(rawCategory)
+      ? (rawCategory as Category)
+      : null;
     const amount = parseFloat(String(formData.get("amount") ?? "0"));
 
     if (!item || isNaN(amount) || amount <= 0) {

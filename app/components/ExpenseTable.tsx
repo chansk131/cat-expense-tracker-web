@@ -11,7 +11,15 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import type { Expense } from "../db/schema";
+import { CATEGORIES } from "../db/schema";
 
 type Props = {
   expenses: Expense[];
@@ -79,7 +87,18 @@ export function ExpenseTable({ expenses }: Props) {
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="category">Category</Label>
-                <Input id="category" name="category" placeholder="e.g. Food" />
+                <Select name="category">
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="amount">
