@@ -67,20 +67,17 @@ export function ExpenseTableController({
     onDeleteCompleted();
   }
 
+  function prefetchCatFactIfNecessary() {
+    const state = queryClient.getQueryState(catFactQueryOptions.queryKey);
+    if (!state?.data || state.isInvalidated) {
+      void queryClient.prefetchQuery(catFactQueryOptions);
+    }
+  }
+
   return (
     <div className="flex justify-end gap-2">
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogTrigger
-          asChild
-          onMouseEnter={() => {
-            const state = queryClient.getQueryState(
-              catFactQueryOptions.queryKey,
-            );
-            if (!state?.data || state.isInvalidated) {
-              void queryClient.prefetchQuery(catFactQueryOptions);
-            }
-          }}
-        >
+        <DialogTrigger asChild onMouseEnter={prefetchCatFactIfNecessary}>
           <Button>Add Expense</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md bg-white dark:bg-gray-950">
