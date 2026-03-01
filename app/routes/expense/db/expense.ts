@@ -1,6 +1,6 @@
 import { desc, inArray } from "drizzle-orm";
-import { db } from "../../db";
-import { expenses, type Category } from "../../db/schema";
+import { db } from "../../../db";
+import { expenses, type Category } from "../../../db/schema";
 
 export async function getAllExpenses() {
   const rows = await db

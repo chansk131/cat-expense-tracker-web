@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { Expense } from "../db/schema";
-import { ExpenseTable } from "./components/ExpenseTable";
-import { ExpenseTableController } from "./components/ExpenseTableController";
+import type { Expense } from "../../../db/schema";
+import { ExpenseTable } from "./ExpenseTable";
+import { ExpenseTableController } from "./ExpenseTableController";
 
 type Props = {
   expenses: Expense[];

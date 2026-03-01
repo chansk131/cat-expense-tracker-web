@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { Expense } from "../../db/schema";
+import type { Expense } from "../../../db/schema";
 import { ExpenseTable } from "./ExpenseTable";
 
 const sampleExpenses: Expense[] = [

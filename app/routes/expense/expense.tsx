@@ -1,14 +1,14 @@
-import { data, useLoaderData } from "react-router";
-import type { Category } from "../db/schema";
-import { CATEGORIES } from "../db/schema";
-import { ExpenseList } from "../expense/ExpenseList";
+import { data } from "react-router";
+import type { Category } from "../../db/schema";
+import { CATEGORIES } from "../../db/schema";
+import { computeTopCategories } from "../../utils/computeTopCategories";
+import type { Route } from "./+types/expense";
+import { ExpenseList } from "./components/ExpenseList";
 import {
   createExpense,
   deleteExpensesByIds,
   getAllExpenses,
-} from "../expense/loader/expense";
-import { computeTopCategories } from "../utils/computeTopCategories";
-import type { Route } from "./+types/home";
+} from "./db/expense";
 
 export function meta() {
   return [
@@ -62,8 +62,8 @@ export async function action({ request }: Route.ActionArgs) {
   return data({ error: "Method not allowed" }, { status: 405 });
 }
 
-export default function Home() {
-  const { expenses, topCategories } = useLoaderData<typeof loader>();
+export default function Home({ loaderData }: Route.ComponentProps) {
+  const { expenses, topCategories } = loaderData;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">

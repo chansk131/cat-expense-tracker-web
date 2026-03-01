@@ -1,4 +1,4 @@
-import type { Expense } from "../../db/schema";
+import type { Expense } from "../../../db/schema";
 
 type Props = {
   expenses: Expense[];
