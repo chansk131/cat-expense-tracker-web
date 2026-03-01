@@ -6,6 +6,7 @@ import { ExpenseTableController } from "../components/ExpenseTableController";
 import { db } from "../db";
 import type { Category } from "../db/schema";
 import { CATEGORIES, expenses } from "../db/schema";
+import { computeTopCategories } from "../utils/computeTopCategories";
 import type { Route } from "./+types/home";
 
 export function meta() {
@@ -21,18 +22,7 @@ export async function loader() {
     .from(expenses)
     .orderBy(desc(expenses.createdAt));
 
-  const totals = new Map<string, number>();
-  for (const e of rows) {
-    if (!e.category) continue;
-    totals.set(e.category, (totals.get(e.category) ?? 0) + e.amount);
-  }
-  let topCategories: Record<string, boolean> = {};
-  if (totals.size > 0) {
-    const max = Math.max(...totals.values());
-    topCategories = Object.fromEntries(
-      [...totals.entries()].map(([k, v]) => [k, v === max]),
-    );
-  }
+  const topCategories = computeTopCategories(rows);
 
   return data({ expenses: rows, topCategories });
 }
