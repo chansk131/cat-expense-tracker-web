@@ -19,14 +19,43 @@ type Props = {
 
 export function ExpenseTable({ expenses }: Props) {
   const [open, setOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const fetcher = useFetcher();
+  const deleteFetcher = useFetcher();
+
+  const allSelected =
+    expenses.length > 0 && selectedIds.size === expenses.length;
+  const someSelected = selectedIds.size > 0;
+
+  function toggleAll(checked: boolean) {
+    setSelectedIds(checked ? new Set(expenses.map((e) => e.id)) : new Set());
+  }
+
+  function toggleOne(id: number, checked: boolean) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
+  }
+
+  function handleDelete() {
+    const form = new FormData();
+    selectedIds.forEach((id) => form.append("ids", String(id)));
+    deleteFetcher.submit(form, { method: "delete" });
+    setSelectedIds(new Set());
+  }
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button>+ Add Expense</Button>
+            <Button>Add Expense</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md bg-white dark:bg-gray-950">
             <DialogHeader>
@@ -81,6 +110,15 @@ export function ExpenseTable({ expenses }: Props) {
             </fetcher.Form>
           </DialogContent>
         </Dialog>
+        <Button
+          variant="destructive"
+          onClick={handleDelete}
+          disabled={deleteFetcher.state === "submitting" || !someSelected}
+        >
+          {deleteFetcher.state === "submitting"
+            ? "Deleting…"
+            : "Delete Expense"}
+        </Button>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
@@ -88,7 +126,12 @@ export function ExpenseTable({ expenses }: Props) {
           <thead className="bg-gray-50 text-xs uppercase tracking-wider text-gray-600 dark:bg-gray-800 dark:text-gray-300">
             <tr>
               <th className="w-10 px-4 py-3">
-                <input type="checkbox" className="rounded" />
+                <input
+                  type="checkbox"
+                  className="rounded"
+                  checked={allSelected}
+                  onChange={(e) => toggleAll(e.target.checked)}
+                />
               </th>
               <th className="px-4 py-3">Item</th>
               <th className="px-4 py-3">Category</th>
@@ -102,7 +145,12 @@ export function ExpenseTable({ expenses }: Props) {
                 className="bg-white transition-colors hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800"
               >
                 <td className="px-4 py-3">
-                  <input type="checkbox" className="rounded" />
+                  <input
+                    type="checkbox"
+                    className="rounded"
+                    checked={selectedIds.has(expense.id)}
+                    onChange={(e) => toggleOne(expense.id, e.target.checked)}
+                  />
                 </td>
                 <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
                   {expense.item}

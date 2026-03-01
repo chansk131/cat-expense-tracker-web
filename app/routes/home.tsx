@@ -1,4 +1,4 @@
-import { desc } from "drizzle-orm";
+import { desc, inArray } from "drizzle-orm";
 import { data, useLoaderData } from "react-router";
 import { ExpenseTable } from "../components/ExpenseTable";
 import { db } from "../db";
@@ -21,19 +21,38 @@ export async function loader() {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
-  const item = String(formData.get("item") ?? "").trim();
-  const category = String(formData.get("category") ?? "").trim() || null;
-  const amount = parseFloat(String(formData.get("amount") ?? "0"));
+  if (request.method === "DELETE") {
+    const formData = await request.formData();
+    const ids = formData
+      .getAll("ids")
+      .map(Number)
+      .filter((id) => !isNaN(id) && id > 0);
 
-  if (!item || isNaN(amount) || amount <= 0) {
-    return data({ error: "Invalid input" }, { status: 400 });
+    if (ids.length === 0) {
+      return data({ error: "No ids provided" }, { status: 400 });
+    }
+
+    await db.delete(expenses).where(inArray(expenses.id, ids));
+    return null;
   }
 
-  await db
-    .insert(expenses)
-    .values({ item, category: category ?? undefined, amount });
-  return null;
+  if (request.method === "POST") {
+    const formData = await request.formData();
+    const item = String(formData.get("item") ?? "").trim();
+    const category = String(formData.get("category") ?? "").trim() || null;
+    const amount = parseFloat(String(formData.get("amount") ?? "0"));
+
+    if (!item || isNaN(amount) || amount <= 0) {
+      return data({ error: "Invalid input" }, { status: 400 });
+    }
+
+    await db
+      .insert(expenses)
+      .values({ item, category: category ?? undefined, amount });
+    return null;
+  }
+
+  return data({ error: "Method not allowed" }, { status: 405 });
 }
 
 export default function Home() {
