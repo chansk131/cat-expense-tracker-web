@@ -1,11 +1,12 @@
-import { desc, inArray } from "drizzle-orm";
-import { useState } from "react";
 import { data, useLoaderData } from "react-router";
-import { ExpenseTable } from "../components/expense/ExpenseTable";
-import { ExpenseTableController } from "../components/expense/ExpenseTableController";
-import { db } from "../db";
 import type { Category } from "../db/schema";
-import { CATEGORIES, expenses } from "../db/schema";
+import { CATEGORIES } from "../db/schema";
+import { ExpenseList } from "../expense/ExpenseList";
+import {
+  createExpense,
+  deleteExpensesByIds,
+  getAllExpenses,
+} from "../expense/loader/expense";
 import { computeTopCategories } from "../utils/computeTopCategories";
 import type { Route } from "./+types/home";
 
@@ -17,11 +18,7 @@ export function meta() {
 }
 
 export async function loader() {
-  const rows = await db
-    .select()
-    .from(expenses)
-    .orderBy(desc(expenses.createdAt));
-
+  const rows = await getAllExpenses();
   const topCategories = computeTopCategories(rows);
 
   return data({ expenses: rows, topCategories });
@@ -39,7 +36,7 @@ export async function action({ request }: Route.ActionArgs) {
       return data({ error: "No ids provided" }, { status: 400 });
     }
 
-    await db.delete(expenses).where(inArray(expenses.id, ids));
+    await deleteExpensesByIds(ids);
     return null;
   }
 
@@ -58,9 +55,7 @@ export async function action({ request }: Route.ActionArgs) {
       return data({ error: "Invalid input" }, { status: 400 });
     }
 
-    await db
-      .insert(expenses)
-      .values({ item, category: category ?? undefined, amount });
+    await createExpense({ item, category, amount });
     return null;
   }
 
@@ -70,42 +65,12 @@ export async function action({ request }: Route.ActionArgs) {
 export default function Home() {
   const { expenses, topCategories } = useLoaderData<typeof loader>();
 
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-
-  function toggleAll(checked: boolean) {
-    setSelectedIds(checked ? new Set(expenses.map((e) => e.id)) : new Set());
-  }
-
-  function toggleOne(id: number, checked: boolean) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (checked) {
-        next.add(id);
-      } else {
-        next.delete(id);
-      }
-      return next;
-    });
-  }
-
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">
         Cat Expenses
       </h1>
-      <div className="space-y-4">
-        <ExpenseTableController
-          selectedIds={selectedIds}
-          onDeleteCompleted={() => setSelectedIds(new Set())}
-        />
-        <ExpenseTable
-          expenses={expenses}
-          topCategories={topCategories}
-          selectedIds={selectedIds}
-          onToggleAll={toggleAll}
-          onToggleOne={toggleOne}
-        />
-      </div>
+      <ExpenseList expenses={expenses} topCategories={topCategories} />
     </main>
   );
 }
