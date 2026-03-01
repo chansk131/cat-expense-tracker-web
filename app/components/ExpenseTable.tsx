@@ -1,4 +1,6 @@
-import { startTransition, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
@@ -22,6 +24,15 @@ import { Skeleton } from "~/components/ui/skeleton";
 import type { Expense } from "../db/schema";
 import { CATEGORIES } from "../db/schema";
 
+const catFactQueryOptions = {
+  queryKey: ["catFact"],
+  queryFn: () =>
+    axios
+      .get<{ fact: string }>("https://catfact.ninja/fact")
+      .then((r) => r.data.fact),
+  staleTime: 0,
+};
+
 type Props = {
   expenses: Expense[];
   topCategories: Record<string, boolean>;
@@ -29,24 +40,22 @@ type Props = {
 
 export function ExpenseTable({ expenses, topCategories }: Props) {
   const [open, setOpen] = useState(false);
-  const [catFact, setCatFact] = useState<string | null>(null);
-  const [catFactLoading, setCatFactLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const queryClient = useQueryClient();
   const fetcher = useFetcher();
   const deleteFetcher = useFetcher();
 
-  useEffect(() => {
-    if (!open) return;
-    startTransition(() => {
-      setCatFact(null);
-      setCatFactLoading(true);
-    });
-    fetch("https://catfact.ninja/fact")
-      .then((res) => res.json())
-      .then((json: { fact: string }) => setCatFact(json.fact))
-      .catch(() => setCatFact(null))
-      .finally(() => setCatFactLoading(false));
-  }, [open]);
+  const { data: catFact, isLoading: catFactLoading } = useQuery({
+    ...catFactQueryOptions,
+    enabled: false,
+  });
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
+      void queryClient.invalidateQueries({ queryKey: ["catFact"] });
+    }
+    setOpen(nextOpen);
+  }
 
   const allSelected =
     expenses.length > 0 && selectedIds.size === expenses.length;
@@ -78,8 +87,18 @@ export function ExpenseTable({ expenses, topCategories }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end gap-2">
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+          <DialogTrigger
+            asChild
+            onMouseEnter={() => {
+              const state = queryClient.getQueryState(
+                catFactQueryOptions.queryKey,
+              );
+              if (!state?.data || state.isInvalidated) {
+                void queryClient.prefetchQuery(catFactQueryOptions);
+              }
+            }}
+          >
             <Button>Add Expense</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md bg-white dark:bg-gray-950">
