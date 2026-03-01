@@ -23,9 +23,10 @@ import { CATEGORIES } from "../db/schema";
 
 type Props = {
   expenses: Expense[];
+  topCategories: Record<string, boolean>;
 };
 
-export function ExpenseTable({ expenses }: Props) {
+export function ExpenseTable({ expenses, topCategories }: Props) {
   const [open, setOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const fetcher = useFetcher();
@@ -158,30 +159,38 @@ export function ExpenseTable({ expenses }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-            {expenses.map((expense) => (
-              <tr
-                key={expense.id}
-                className="bg-white transition-colors hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800"
-              >
-                <td className="px-4 py-3">
-                  <input
-                    type="checkbox"
-                    className="rounded"
-                    checked={selectedIds.has(expense.id)}
-                    onChange={(e) => toggleOne(expense.id, e.target.checked)}
-                  />
-                </td>
-                <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
-                  {expense.item}
-                </td>
-                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
-                  {expense.category ?? "—"}
-                </td>
-                <td className="px-4 py-3 text-right text-gray-900 dark:text-gray-100">
-                  ${expense.amount.toFixed(2)}
-                </td>
-              </tr>
-            ))}
+            {expenses.map((expense) => {
+              const isTop =
+                !!expense.category && topCategories[expense.category] === true;
+              return (
+                <tr
+                  key={expense.id}
+                  className={
+                    isTop
+                      ? "bg-amber-50 transition-colors hover:bg-amber-100 dark:bg-amber-950/30 dark:hover:bg-amber-900/40"
+                      : "bg-white transition-colors hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800"
+                  }
+                >
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      className="rounded"
+                      checked={selectedIds.has(expense.id)}
+                      onChange={(e) => toggleOne(expense.id, e.target.checked)}
+                    />
+                  </td>
+                  <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
+                    {expense.item}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                    {expense.category ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 text-right text-gray-900 dark:text-gray-100">
+                    ${expense.amount.toFixed(2)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -18,7 +18,21 @@ export async function loader() {
     .select()
     .from(expenses)
     .orderBy(desc(expenses.createdAt));
-  return data({ expenses: rows });
+
+  const totals = new Map<string, number>();
+  for (const e of rows) {
+    if (!e.category) continue;
+    totals.set(e.category, (totals.get(e.category) ?? 0) + e.amount);
+  }
+  let topCategories: Record<string, boolean> = {};
+  if (totals.size > 0) {
+    const max = Math.max(...totals.values());
+    topCategories = Object.fromEntries(
+      [...totals.entries()].map(([k, v]) => [k, v === max]),
+    );
+  }
+
+  return data({ expenses: rows, topCategories });
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -62,14 +76,14 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function Home() {
-  const { expenses } = useLoaderData<typeof loader>();
+  const { expenses, topCategories } = useLoaderData<typeof loader>();
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">
         Cat Expenses
       </h1>
-      <ExpenseTable expenses={expenses} />
+      <ExpenseTable expenses={expenses} topCategories={topCategories} />
     </main>
   );
 }
