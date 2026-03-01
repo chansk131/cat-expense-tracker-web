@@ -1,8 +1,8 @@
 import { desc, inArray } from "drizzle-orm";
 import { useState } from "react";
 import { data, useLoaderData } from "react-router";
-import { ExpenseTable } from "../components/ExpenseTable";
-import { ExpenseTableController } from "../components/ExpenseTableController";
+import { ExpenseTable } from "../components/expense/ExpenseTable";
+import { ExpenseTableController } from "../components/expense/ExpenseTableController";
 import { db } from "../db";
 import type { Category } from "../db/schema";
 import { CATEGORIES, expenses } from "../db/schema";

@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Skeleton } from "~/components/ui/skeleton";
-import { CATEGORIES } from "../db/schema";
+import { CATEGORIES } from "../../db/schema";
 
 const catFactQueryOptions = {
   queryKey: ["catFact"],
