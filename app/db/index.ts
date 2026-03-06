@@ -9,7 +9,9 @@ if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
 
-const sqlite = new Database(path.join(dbDir, "expenses.db"));
+// Support custom database path for testing (defaults to production database)
+const dbPath = process.env.DATABASE_PATH || path.join(dbDir, "expenses.db");
+const sqlite = new Database(dbPath);
 sqlite.pragma("journal_mode = WAL");
 
 export const db = drizzle(sqlite, { schema });

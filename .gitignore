@@ -8,3 +8,7 @@
 
 # SQLite database
 /data/
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
