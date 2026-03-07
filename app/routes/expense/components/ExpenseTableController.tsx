@@ -80,15 +80,29 @@ export function ExpenseTableController({
         <DialogTrigger asChild onMouseEnter={prefetchCatFactIfNecessary}>
           <Button>Add Expense</Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-md bg-white dark:bg-gray-950">
+        <DialogContent className="sm:max-w-2xl bg-white dark:bg-gray-950">
           <DialogHeader>
             <DialogTitle>Add Expense</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col w-full h-fit rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-300 sm:order-2">
+              <h2 className="font-bold">Random cat fact:</h2>
+              {catFactLoading ? (
+                <div className="mt-1 space-y-2">
+                  <Skeleton className="h-3 w-full bg-amber-100" />
+                  <Skeleton className="h-3 w-full bg-amber-100" />
+                  <Skeleton className="h-3 w-4/5 bg-amber-100" />
+                </div>
+              ) : (
+                <p className="max-h-18 overflow-y-auto sm:max-h-none sm:overflow-y-visible">
+                  {catFact}
+                </p>
+              )}
+            </div>
             <fetcher.Form
               onSubmit={() => setOpen(false)}
               method="post"
-              className="flex flex-col gap-4 w-full"
+              className="flex flex-col gap-4 w-full sm:order-1"
             >
               <div className="flex flex-col gap-2">
                 <Label htmlFor="item">
@@ -136,18 +150,6 @@ export function ExpenseTableController({
                 </Button>
               </DialogFooter>
             </fetcher.Form>
-            <div className="flex flex-col w-full h-fit rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
-              <h2 className="font-bold">Random cat fact:</h2>
-              {catFactLoading ? (
-                <div className="mt-1 space-y-2">
-                  <Skeleton className="h-3 w-full bg-amber-100" />
-                  <Skeleton className="h-3 w-full bg-amber-100" />
-                  <Skeleton className="h-3 w-4/5 bg-amber-100" />
-                </div>
-              ) : (
-                <p>{catFact}</p>
-              )}
-            </div>
           </div>
         </DialogContent>
       </Dialog>
