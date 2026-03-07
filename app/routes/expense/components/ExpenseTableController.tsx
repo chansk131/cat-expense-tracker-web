@@ -116,9 +116,11 @@ export function ExpenseTableController({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="category">Category</Label>
-                <Select name="category">
-                  <SelectTrigger id="category">
+                <Label htmlFor="category">
+                  Category <span className="text-destructive">*</span>
+                </Label>
+                <Select name="category" required>
+                  <SelectTrigger id="category" className="w-full">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
