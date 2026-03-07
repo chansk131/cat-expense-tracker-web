@@ -3,7 +3,7 @@ import { TopBar } from "../components/TopBar";
 
 export default function AppLayout() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950">
+    <div className="min-h-screen bg-background dark:bg-gray-950">
       <TopBar />
       <Outlet />
     </div>
