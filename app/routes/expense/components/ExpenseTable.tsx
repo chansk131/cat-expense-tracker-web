@@ -1,4 +1,5 @@
 import type { Expense } from "../../../db/schema";
+import { CategoryChip } from "./CategoryChip";
 
 type Props = {
   expenses: Expense[];
@@ -21,7 +22,7 @@ export function ExpenseTable({
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
       <table className="w-full text-left text-sm">
-        <thead className="bg-gray-50 text-xs uppercase tracking-wider text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+        <thead className="bg-white text-xs uppercase tracking-wider text-gray-600 dark:bg-gray-900 dark:text-gray-300">
           <tr>
             <th className="w-10 px-4 py-3">
               <input
@@ -60,8 +61,8 @@ export function ExpenseTable({
                 <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
                   {expense.item}
                 </td>
-                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
-                  {expense.category ?? "—"}
+                <td className="px-4 py-3">
+                  <CategoryChip category={expense.category} />
                 </td>
                 <td className="px-4 py-3 text-right text-gray-900 dark:text-gray-100">
                   ${expense.amount.toFixed(2)}
