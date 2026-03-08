@@ -7,4 +7,5 @@ export const catFactQueryOptions = {
       .get<{ fact: string }>("https://catfact.ninja/fact")
       .then((r) => r.data.fact),
   staleTime: 0,
+  retry: false,
 };
