@@ -4,18 +4,12 @@ import { action, loader } from "./expense";
 vi.mock("./db/expense", () => ({
   getAllExpenses: vi.fn(),
   deleteExpensesByIds: vi.fn(),
-  createExpense: vi.fn(),
 }));
 
-import {
-  createExpense,
-  deleteExpensesByIds,
-  getAllExpenses,
-} from "./db/expense";
+import { deleteExpensesByIds, getAllExpenses } from "./db/expense";
 
 const mockGetAllExpenses = vi.mocked(getAllExpenses);
 const mockDeleteExpensesByIds = vi.mocked(deleteExpensesByIds);
-const mockCreateExpense = vi.mocked(createExpense);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -206,95 +200,16 @@ describe("expense action", () => {
     });
   });
 
-  describe("POST", () => {
-    it("calls createExpense with valid data and returns null", async () => {
-      mockCreateExpense.mockResolvedValueOnce(undefined);
-      const request = makeRequest("POST", {
-        item: "Cat Food",
-        category: "Food",
-        amount: "25.00",
-      });
-
-      const result = await callAction(request);
-
-      expect(mockCreateExpense).toHaveBeenCalledOnce();
-      expect(mockCreateExpense).toHaveBeenCalledWith({
-        item: "Cat Food",
-        category: "Food",
-        amount: 25,
-      });
-      expect(result).toBeNull();
-    });
-
-    it("stores category as null when category is not in CATEGORIES", async () => {
-      mockCreateExpense.mockResolvedValueOnce(undefined);
-      const request = makeRequest("POST", {
-        item: "Mystery Item",
-        category: "InvalidCategory",
-        amount: "10",
-      });
-
-      await callAction(request);
-
-      expect(mockCreateExpense).toHaveBeenCalledWith({
-        item: "Mystery Item",
-        category: null,
-        amount: 10,
-      });
-    });
-
-    it("stores category as null when category is omitted", async () => {
-      mockCreateExpense.mockResolvedValueOnce(undefined);
-      const request = makeRequest("POST", { item: "Collar", amount: "12" });
-
-      await callAction(request);
-
-      expect(mockCreateExpense).toHaveBeenCalledWith({
-        item: "Collar",
-        category: null,
-        amount: 12,
-      });
-    });
-
-    it("returns 400 when item is empty", async () => {
-      const request = makeRequest("POST", { item: "  ", amount: "10" });
-
-      const result = await callAction(request);
-
-      expect(mockCreateExpense).not.toHaveBeenCalled();
-      expect(result!.init?.status).toBe(400);
-      expect(result!.data).toEqual({ error: "Invalid input" });
-    });
-
-    it("returns 400 when amount is zero", async () => {
-      const request = makeRequest("POST", { item: "Cat Food", amount: "0" });
-
-      const result = await callAction(request);
-
-      expect(mockCreateExpense).not.toHaveBeenCalled();
-      expect(result!.init?.status).toBe(400);
-    });
-
-    it("returns 400 when amount is negative", async () => {
-      const request = makeRequest("POST", { item: "Cat Food", amount: "-5" });
-
-      const result = await callAction(request);
-
-      expect(mockCreateExpense).not.toHaveBeenCalled();
-      expect(result!.init?.status).toBe(400);
-    });
-
-    it("returns 400 when amount is not a number", async () => {
-      const request = makeRequest("POST", { item: "Cat Food", amount: "abc" });
-
-      const result = await callAction(request);
-
-      expect(mockCreateExpense).not.toHaveBeenCalled();
-      expect(result!.init?.status).toBe(400);
-    });
-  });
-
   describe("unsupported methods", () => {
+    it("returns 405 for POST", async () => {
+      const request = makeRequest("POST");
+
+      const result = await callAction(request);
+
+      expect(result!.init?.status).toBe(405);
+      expect(result!.data).toEqual({ error: "Method not allowed" });
+    });
+
     it("returns 405 for PATCH", async () => {
       const request = makeRequest("PATCH");
 

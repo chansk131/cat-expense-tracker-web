@@ -16,7 +16,7 @@ export class ExpensePage {
 
   constructor(page: Page) {
     this.page = page;
-    this.addExpenseButton = page.getByRole("button", { name: "Add Expense" });
+    this.addExpenseButton = page.getByRole("link", { name: "Add Expense" });
     this.deleteExpenseButton = page.getByRole("button", {
       name: /Delete Expense/,
     });

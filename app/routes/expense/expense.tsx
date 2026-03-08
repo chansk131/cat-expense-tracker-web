@@ -1,14 +1,8 @@
-import { data } from "react-router";
-import type { Category } from "../../db/schema";
-import { CATEGORIES } from "../../db/schema";
+import { data, Outlet } from "react-router";
 import { computeTopCategories } from "../../utils/computeTopCategories";
 import type { Route } from "./+types/expense";
 import { ExpenseList } from "./components/ExpenseList";
-import {
-  createExpense,
-  deleteExpensesByIds,
-  getAllExpenses,
-} from "./db/expense";
+import { deleteExpensesByIds, getAllExpenses } from "./db/expense";
 
 export function meta() {
   return [
@@ -40,25 +34,6 @@ export async function action({ request }: Route.ActionArgs) {
     return null;
   }
 
-  if (request.method === "POST") {
-    const formData = await request.formData();
-    const item = String(formData.get("item") ?? "").trim();
-    const rawCategory = String(formData.get("category") ?? "").trim();
-    const category: Category | null = (
-      CATEGORIES as readonly string[]
-    ).includes(rawCategory)
-      ? (rawCategory as Category)
-      : null;
-    const amount = parseFloat(String(formData.get("amount") ?? "0"));
-
-    if (!item || isNaN(amount) || amount <= 0) {
-      return data({ error: "Invalid input" }, { status: 400 });
-    }
-
-    await createExpense({ item, category, amount });
-    return null;
-  }
-
   return data({ error: "Method not allowed" }, { status: 405 });
 }
 
@@ -68,6 +43,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       <ExpenseList expenses={expenses} topCategories={topCategories} />
+      <Outlet />
     </main>
   );
 }
